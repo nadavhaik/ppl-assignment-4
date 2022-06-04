@@ -15,14 +15,13 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
     return {
         get(key: string): Promise<T> {
             sync()
-                .then(table => {return Promise.resolve([key])})
+                .then(table => {return Promise.resolve(table[key])})
                 .catch(table => {return Promise.reject(MISSING_KEY)})
             return Promise.reject(MISSING_KEY)
         },
         set(key: string, val: T): Promise<void> {
             sync().then(table => {
-
-            })
+                })
             return Promise.reject(MISSING_KEY)
         },
         delete(key: string): Promise<void> {
