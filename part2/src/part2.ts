@@ -90,14 +90,28 @@ export async function constructObjectFromTables(tables: TableServiceTable, ref: 
 // Q 2.3
 
 export function lazyProduct<T1, T2>(g1: () => Generator<T1>, g2: () => Generator<T2>): () => Generator<[T1, T2]> {
-    return function* () {
-        // TODO implement!
+    return function* (): Generator<[T1, T2]>  {
+        for (const t1 of g1()) {
+            for(const t2 of g2())
+                yield [t1, t2]
+        }
     }
 }
 
 export function lazyZip<T1, T2>(g1: () => Generator<T1>, g2: () => Generator<T2>): () => Generator<[T1, T2]> {
-    return function* () {
-        // TODO implement!
+    return function* (): Generator<[T1, T2]> {
+        let i: number = 0
+        for(const t1 of g1()) {
+            let j: number = 0
+            for(const t2 of g2()) {
+                if(i==j){
+                    yield [t1, t2]
+                    break
+                }
+                j++
+            }
+            i++
+        }
     }
 }
 
