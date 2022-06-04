@@ -13,9 +13,11 @@ export type TableService<T> = {
 export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>>): TableService<T> {
     // optional initialization code
     let d: {[key: string]: T | undefined} = {}
-    sync().then(table => {table.forEach((key: string) => {
-        d[key] = table[key]
-    })})
+    sync().then(table => {
+        for(let key in table){
+            d[key] = table[key]
+        }
+    })
 
     return {
         get(key: string): Promise<T> {
