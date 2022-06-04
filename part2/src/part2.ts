@@ -37,8 +37,7 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
 // Q 2.1 (b)
 export function getAll<T>(store: TableService<T>, keys: string[]): Promise<T[]> {
     let values : T[] = []
-    let i : number = 0
-    while (i<keys.length){
+    for(let i: number = 0; i<keys.length; i++){
         store.get(keys[i])
             .then(r => {
                 values.push(r)}
