@@ -14,37 +14,34 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
     // optional initialization code
     let d: { [key: string]: T} = {}
     let initialized: boolean = false
-    const init = (table: Table<T>) => {
-        for (let key in table) {
+    sync().then((table: Table<T>) => {
+        for (const key in table)
             d[key] = table[key]
-        }
         initialized = true
-    }
+    })
+    const waitForInitialization = () => {while(!initialized);}
 
     return {
         get(key: string): Promise<T> {
             return sync()
-                .then(table => {
-                    if(!initialized)
-                        init(table)
+                .then(() => {
+                    waitForInitialization()
                     if(d.hasOwnProperty(key))
                         return Promise.resolve(d[key])
                     return Promise.reject(MISSING_KEY)
                 }).catch(() => Promise.reject(MISSING_KEY))
         },
         set(key: string, val: T): Promise<void> {
-            return sync().then(table => {
-                if(!initialized)
-                    init(table)
+            return sync().then(() => {
+                waitForInitialization()
                 d[key] = val
                 return Promise.resolve()
             }).catch(() => Promise.reject(MISSING_KEY))
         },
         delete(key: string): Promise<void> {
-           return sync().then(table => {
-               if(!initialized)
-                   init(table)
-               if(table.hasOwnProperty(key)) {
+           return sync().then(() => {
+               waitForInitialization()
+               if(d.hasOwnProperty(key)) {
                    delete d[key]
                    return Promise.resolve()
                }
