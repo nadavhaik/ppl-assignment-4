@@ -71,7 +71,7 @@ export async function constructObjectFromTables(tables: TableServiceTable, ref: 
         if(!tables.hasOwnProperty(ref.table))
             return Promise.reject(MISSING_TABLE_SERVICE)
 
-        let obj = await tables[ref.table].get(ref.key)
+        let obj: any = await tables[ref.table].get(ref.key)
         let newObj: any = {}
 
         for(const [key, val] of Object.entries(obj)) {
