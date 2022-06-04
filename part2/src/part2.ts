@@ -12,23 +12,27 @@ export type TableService<T> = {
 // Q 2.1 (a)
 export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>>): TableService<T> {
     // optional initialization code
+    let d: {[key: string]: T | undefined} = {}
+    sync().then(table => {table.forEach((key: string) => {
+        d[key] = table[key]
+    })})
+
     return {
         get(key: string): Promise<T> {
             sync()
-                .then(table => {return Promise.resolve(table[key])})
+                .then(table => {return Promise.resolve(d[key])})
                 .catch(table => {return Promise.reject(MISSING_KEY)})
             return Promise.reject(MISSING_KEY)
         },
         set(key: string, val: T): Promise<void> {
-            sync().then(table => {
-                })
+            sync().then(table => {d[key] = val})
             return Promise.reject(MISSING_KEY)
         },
         delete(key: string): Promise<void> {
-         //   sync().then(table => {sync.call(this.delete(key))
-         //       .then(r => {return Promise.resolve()})
-         //       .catch(r => {return Promise.reject(MISSING_KEY)})
-       //     })
+           sync().then(table => {d[key] = undefined})
+               .then(r => {return Promise.resolve()})
+               .catch(r => {return Promise.reject(MISSING_KEY)
+               })
             return Promise.reject(MISSING_KEY)
         }
     }
