@@ -14,20 +14,39 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
     // optional initialization code
     return {
         get(key: string): Promise<T> {
-            return Promise.reject('not implemented')
+            sync()
+                .then(table => {return Promise.resolve([key])})
+                .catch(table => {return Promise.reject(MISSING_KEY)})
+            return Promise.reject(MISSING_KEY)
         },
         set(key: string, val: T): Promise<void> {
-            return Promise.reject('not implemented')
+            sync().then(table => {
+
+            })
+            return Promise.reject(MISSING_KEY)
         },
         delete(key: string): Promise<void> {
-            return Promise.reject('not implemented')
+         //   sync().then(table => {sync.call(this.delete(key))
+         //       .then(r => {return Promise.resolve()})
+         //       .catch(r => {return Promise.reject(MISSING_KEY)})
+       //     })
+            return Promise.reject(MISSING_KEY)
         }
     }
 }
 
 // Q 2.1 (b)
 export function getAll<T>(store: TableService<T>, keys: string[]): Promise<T[]> {
-    return Promise.reject('not implemented')
+    let values : T[] = []
+    let i : number = 0
+    while (i<keys.length){
+        store.get(keys[i])
+            .then(r => {
+                values.push(r)}
+            )
+            .catch(r => {return Promise.reject(MISSING_KEY)})
+    }
+    return Promise.resolve(values)
 }
 
 
