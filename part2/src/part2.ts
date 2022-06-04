@@ -12,30 +12,44 @@ export type TableService<T> = {
 // Q 2.1 (a)
 export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>>): TableService<T> {
     // optional initialization code
-    let d: {[key: string]: T | undefined} = {}
-    sync().then(table => {
-        for(let key in table){
+    let d: { [key: string]: T} = {}
+    let initialized = false
+    let init = (table: Table<T>) => {
+        for (let key in table) {
             d[key] = table[key]
         }
-    })
+        initialized = true
+    }
+
 
     return {
         get(key: string): Promise<T> {
-            sync()
-                .then(table => {return Promise.resolve(d[key])})
+            return sync()
+                .then(table => {
+                    if(!initialized)
+                        init(table)
+                    if(d.hasOwnProperty(key))
+                        return Promise.resolve(d[key])
+                    return Promise.reject(MISSING_KEY)
+                })
                 .catch(table => {return Promise.reject(MISSING_KEY)})
-            return Promise.reject(MISSING_KEY)
         },
         set(key: string, val: T): Promise<void> {
-            sync().then(table => {d[key] = val})
-            return Promise.reject(MISSING_KEY)
+            return sync().then(table => {
+                if(!initialized)
+                    init(table)
+                d[key] = val
+                return Promise.resolve()
+            }).catch(table => Promise.reject(MISSING_KEY))
         },
         delete(key: string): Promise<void> {
-           sync().then(table => {d[key] = undefined})
+           return sync().then(table => {
+               if(!initialized)
+                   init(table)
+               delete d[key]
+           })
                .then(r => {return Promise.resolve()})
-               .catch(r => {return Promise.reject(MISSING_KEY)
-               })
-            return Promise.reject(MISSING_KEY)
+               .catch(r => {return Promise.reject(MISSING_KEY)})
         }
     }
 }
