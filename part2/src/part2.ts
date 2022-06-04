@@ -14,13 +14,12 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
     // optional initialization code
     let d: { [key: string]: T} = {}
     let initialized: boolean = false
-    let init = (table: Table<T>) => {
+    const init = (table: Table<T>) => {
         for (let key in table) {
             d[key] = table[key]
         }
         initialized = true
     }
-
 
     return {
         get(key: string): Promise<T> {
