@@ -56,15 +56,13 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
 
 // Q 2.1 (b)
 export function getAll<T>(store: TableService<T>, keys: string[]): Promise<T[]> {
-    let values : T[] = []
-    for(let i: number = 0; i<keys.length; i++){
-        store.get(keys[i])
-            .then(r => {
-                values.push(r)}
-            )
-            .catch(r => {return Promise.reject(MISSING_KEY)})
-    }
-    return Promise.resolve(values)
+     let values : T[] = []
+       for(let i: number = 0; i<keys.length; i++){
+           store.get(keys[i])
+               .then(val => {values.push(val)})
+               .catch(err => {return Promise.reject(MISSING_KEY)})
+       }
+       return Promise.resolve(values)
 }
 
 
