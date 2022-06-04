@@ -13,7 +13,7 @@ export type TableService<T> = {
 export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>>): TableService<T> {
     // optional initialization code
     let d: { [key: string]: T} = {}
-    let initialized = false
+    let initialized: boolean = false
     let init = (table: Table<T>) => {
         for (let key in table) {
             d[key] = table[key]
@@ -31,8 +31,7 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
                     if(d.hasOwnProperty(key))
                         return Promise.resolve(d[key])
                     return Promise.reject(MISSING_KEY)
-                })
-                .catch(table => {return Promise.reject(MISSING_KEY)})
+                }).catch(() => Promise.reject(MISSING_KEY))
         },
         set(key: string, val: T): Promise<void> {
             return sync().then(table => {
@@ -40,29 +39,25 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
                     init(table)
                 d[key] = val
                 return Promise.resolve()
-            }).catch(table => Promise.reject(MISSING_KEY))
+            }).catch(() => Promise.reject(MISSING_KEY))
         },
         delete(key: string): Promise<void> {
            return sync().then(table => {
                if(!initialized)
                    init(table)
-               delete d[key]
-           })
-               .then(r => {return Promise.resolve()})
-               .catch(r => {return Promise.reject(MISSING_KEY)})
+               if(table.hasOwnProperty(key)) {
+                   delete d[key]
+                   return Promise.resolve()
+               }
+               return Promise.reject(MISSING_KEY)
+           }).catch(() => Promise.reject(MISSING_KEY))
         }
     }
 }
 
 // Q 2.1 (b)
 export function getAll<T>(store: TableService<T>, keys: string[]): Promise<T[]> {
-     let values : T[] = []
-       for(let i: number = 0; i<keys.length; i++){
-           store.get(keys[i])
-               .then(val => {values.push(val)})
-               .catch(err => {return Promise.reject(MISSING_KEY)})
-       }
-       return Promise.resolve(values)
+    return Promise.all(keys.map((key: string) => store.get(key)))
 }
 
 
