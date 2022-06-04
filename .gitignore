@@ -2,3 +2,5 @@
 .idea/modules.xml
 .idea/ppl-assignment-4.iml
 .idea/vcs.xml
+/part3/node_modules/
+/part2/node_modules/
