@@ -72,16 +72,10 @@ export async function constructObjectFromTables(tables: TableServiceTable, ref: 
             return Promise.reject(MISSING_TABLE_SERVICE)
 
         let obj: any = await tables[ref.table].get(ref.key)
-        let newObj: any = {}
+        for(const [key, val] of Object.entries(obj).filter(([key, val]) => isReference(val)))
+            obj[key] = await deref(val as Reference)
 
-        for(const [key, val] of Object.entries(obj)) {
-            if(isReference(val))
-                newObj[key] = await deref(val)
-            else
-                newObj[key] = val
-        }
-
-        return Promise.resolve(newObj)
+        return Promise.resolve(obj)
     }
 
     return deref(ref)
