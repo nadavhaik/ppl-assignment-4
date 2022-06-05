@@ -100,17 +100,13 @@ export function lazyProduct<T1, T2>(g1: () => Generator<T1>, g2: () => Generator
 
 export function lazyZip<T1, T2>(g1: () => Generator<T1>, g2: () => Generator<T2>): () => Generator<[T1, T2]> {
     return function* (): Generator<[T1, T2]> {
-        let i: number = 0
-        for(const t1 of g1()) {
-            let j: number = 0
-            for(const t2 of g2()) {
-                if(i==j){
-                    yield [t1, t2]
-                    break
-                }
-                j++
-            }
-            i++
+        const gen1: Generator<T1> = g1()
+        const gen2: Generator<T2> = g2()
+
+        for (let [gen1Iter, gen2Iter]: [IteratorResult<T1>, IteratorResult<T2>] = [gen1.next(), gen2.next()];    // initialization
+             !gen1Iter.done && !gen2Iter.done;                                                                  // loop condition
+             gen1Iter = gen1.next(), gen2Iter = gen2.next()) {                                                  // loop step
+            yield [gen1Iter.value, gen2Iter.value]                                                              // loop content - generator yields
         }
     }
 }
