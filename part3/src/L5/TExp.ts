@@ -47,14 +47,15 @@ import { cons, first, rest } from '../shared/list';
 import { Result, bind, makeOk, makeFailure, mapResult, mapv } from "../shared/result";
 import { isCompoundSexp, isToken, parse as p } from "../shared/parser";
 
-export type TExp =  AtomicTExp | CompoundTExp | TVar | UserDefinedNameTExp; // L51
+export type TExp =  AtomicTExp | CompoundTExp | TVar | UserDefinedNameTExp | ; // L51
 export const isTExp = (x: any): x is TExp => isAtomicTExp(x) || isCompoundTExp(x) || isTVar(x) || isUserDefinedNameTExp(x); // L51
 
 export type AtomicTExp = NumTExp | BoolTExp | StrTExp | VoidTExp | UserDefinedNameTExp | AnyTExp; // L51
 export const isAtomicTExp = (x: any): x is AtomicTExp =>
     isNumTExp(x) || isBoolTExp(x) || isStrTExp(x) || isVoidTExp(x) || isUserDefinedNameTExp(x) || isAnyTExp(x); // L51
 
-export type CompoundTExp = ProcTExp | TupleTExp | UserDefinedTExp | Record;  // L51
+// we added LitTexp to compundTexp
+export type CompoundTExp = ProcTExp | TupleTExp | UserDefinedTExp | LitTexp | Record;  // L51
 export const isCompoundTExp = (x: any): x is CompoundTExp => isProcTExp(x) || isTupleTExp(x) || isUserDefinedTExp(x); 
 
 export type NonTupleTExp = AtomicTExp | ProcTExp | TVar | UserDefinedNameTExp; // L51
@@ -89,7 +90,10 @@ export const isUserDefinedTExp = (x: any): x is UserDefinedTExp => x.tag === "Us
 // A user defined type - either a disjoint union UserDefinedTExp or a Record
 export type UDTExp = UserDefinedTExp | Record;
 // L51>
-
+// we added
+export type LitTexp = {tag:"literal"};
+export const makeLitTexp = ():LitTexp => ({tag:"literal"});
+export const isLitTexp = (x:any) : x is LitTexp => x.tag==="literal";
 
 export type NumTExp = { tag: "NumTExp" };
 export const makeNumTExp = (): NumTExp => ({tag: "NumTExp"});
