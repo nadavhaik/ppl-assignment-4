@@ -47,7 +47,7 @@ import { cons, first, rest } from '../shared/list';
 import { Result, bind, makeOk, makeFailure, mapResult, mapv } from "../shared/result";
 import { isCompoundSexp, isToken, parse as p } from "../shared/parser";
 
-export type TExp =  AtomicTExp | CompoundTExp | TVar | UserDefinedNameTExp | ; // L51
+export type TExp =  AtomicTExp | CompoundTExp | TVar | UserDefinedNameTExp  ; // L51
 export const isTExp = (x: any): x is TExp => isAtomicTExp(x) || isCompoundTExp(x) || isTVar(x) || isUserDefinedNameTExp(x); // L51
 
 export type AtomicTExp = NumTExp | BoolTExp | StrTExp | VoidTExp | UserDefinedNameTExp | AnyTExp; // L51
@@ -348,6 +348,7 @@ export const unparseTExp = (te: TExp): Result<string> => {
                             mapv(unparseTExp(x.returnTE), (returnTE: string) =>
                                 [...paramTEs, '->', returnTE])) :
         isEmptyTupleTExp(x) ? makeOk("Empty") :
+            isLitTexp(x) ? makeOk("literal") :
         isNonEmptyTupleTExp(x) ? unparseTuple(x.TEs) :
         x === undefined ? makeFailure("Undefined TVar") :
         x;
