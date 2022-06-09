@@ -95,8 +95,10 @@ const isSubType = (te1: TExp, te2: TExp, p: Program): boolean =>
 // Exp is only passed for documentation purposes.
 // p is passed to provide the context of all user defined types
 export const checkEqualType = (te1: TExp, te2: TExp, exp: Exp, p: Program): Result<TExp> =>
-  equals(te1, te2) ? makeOk(te2) :
-  makeFailure(`Incompatible types: ${te1} and ${te2} in ${exp}`);
+    isAnyTExp(te2) ? makeOk(te2) :
+        equals(te1,te2)  ? makeOk(te2) :
+            isSubType(te1,te2,p) ? makeOk(te2) :
+                makeFailure(`Incompatible types: ${te1} and ${te2} in ${exp}`)
 
 
 // L51
