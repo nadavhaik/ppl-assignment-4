@@ -83,7 +83,7 @@ export const getTypeByName = (typeName: string, p: Program): Result<UDTExp> => {
 // TODO L51
 // Is te1 a subtype of te2?
 const isSubType = (te1: TExp, te2: TExp, p: Program): boolean =>
-    equals(getParentsType(te1,p)[0], te2) ? true : false
+    getParentsType(te1,p).includes(te2) ? true : false
 
 
 
