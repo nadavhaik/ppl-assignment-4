@@ -85,7 +85,7 @@ export const getTypeByName = (typeName: string, p: Program): Result<UDTExp> => {
 const isSubType = (te1: TExp, te2: TExp, p: Program): boolean =>
     isAnyTExp(te2) ? true :
     isUserDefinedTExp(te1) && isUserDefinedTExp(te2) ?
-        te1.typeName == te2.typeName ? true : //same user defined TExp
+        te1.typeName === te2.typeName ? true : //same user defined TExp
             getParentsType(te1,p).includes(te2) ? true : false : //te2 is parent type of te1
     isTVar(te1)&&isTVar(te2)&&eqTVar(te1,te2) ? true : //same TVars
     tvarDeref(te1) === tvarDeref(te2) ? true : false
