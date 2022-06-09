@@ -15,7 +15,7 @@ import {
     BoolTExp, NumTExp, StrTExp, TExp, VoidTExp, UserDefinedTExp, isUserDefinedTExp, UDTExp,
     isNumTExp, isBoolTExp, isStrTExp, isVoidTExp,
     isRecord, ProcTExp, makeUserDefinedNameTExp, Field, makeAnyTExp, isAnyTExp, isUserDefinedNameTExp, isAtomicTExp,
-    isLitTexp,LitTexp, makeLitTexp
+    isLitTexp, LitTexp, makeLitTexp, isCompoundTExp, extractTypeNames, makeTVar
 } from "./TExp";
 import { isEmpty, allT, first, rest, cons } from '../shared/list';
 import { Result, makeFailure, bind, makeOk, zipWithResult, mapv, mapResult, isFailure, either } from '../shared/result';
@@ -82,8 +82,12 @@ export const getTypeByName = (typeName: string, p: Program): Result<UDTExp> => {
 
 // TODO L51
 // Is te1 a subtype of te2?
-const isSubType = (te1: TExp, te2: TExp, p: Program): boolean =>
-    false;
+const isSubType = (te1: TExp, te2: TExp, p: Program): boolean => {
+    if (isUserDefinedTExp(te1)) {
+
+    }
+    return false;
+};
 
 
 // TODO L51: Change this definition to account for user defined types
@@ -387,7 +391,14 @@ export const typeofDefineType = (exp: DefineTypeExp, _tenv: TEnv, _p: Program): 
 
 // TODO L51
 export const typeofSet = (exp: SetExp, _tenv: TEnv, _p: Program): Result<TExp> =>
-    makeFailure(`Todo ${JSON.stringify(exp, null, 2)}`);
+{
+    const var1 = exp.var.var
+    const val_texp = typeofExp(exp.val,_tenv,_p)
+    const constraints = bind(val_texp,(t:TExp) => makeOk(makeTVar(var1.toString())))
+    const change_TEnv = applyTEnv(_tenv,var1)
+    return bind(change_TEnv,(t) => constraints)
+
+};
 
 // TODO L51
 // Typing rule (we added): @TODO add to docx
