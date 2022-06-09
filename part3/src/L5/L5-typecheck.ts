@@ -15,7 +15,7 @@ import {
     BoolTExp, NumTExp, StrTExp, TExp, VoidTExp, UserDefinedTExp, isUserDefinedTExp, UDTExp,
     isNumTExp, isBoolTExp, isStrTExp, isVoidTExp,
     isRecord, ProcTExp, makeUserDefinedNameTExp, Field, makeAnyTExp, isAnyTExp, isUserDefinedNameTExp, isAtomicTExp,
-    isLitTexp, LitTexp, makeLitTexp, isCompoundTExp, extractTypeNames, makeTVar
+    isLitTexp, LitTexp, makeLitTexp, isCompoundTExp, extractTypeNames, makeTVar, eqAtomicTExp
 } from "./TExp";
 import { isEmpty, allT, first, rest, cons } from '../shared/list';
 import { Result, makeFailure, bind, makeOk, zipWithResult, mapv, mapResult, isFailure, either } from '../shared/result';
@@ -82,12 +82,9 @@ export const getTypeByName = (typeName: string, p: Program): Result<UDTExp> => {
 
 // TODO L51
 // Is te1 a subtype of te2?
-const isSubType = (te1: TExp, te2: TExp, p: Program): boolean => {
-    if (isUserDefinedTExp(te1)) {
+const isSubType = (te1: TExp, te2: TExp, p: Program): boolean =>
+    equals(getParentsType(te1,p)[0], te2) ? true : false
 
-    }
-    return false;
-};
 
 
 // TODO L51: Change this definition to account for user defined types
