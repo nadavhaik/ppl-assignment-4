@@ -85,11 +85,10 @@ export const getTypeByName = (typeName: string, p: Program): Result<UDTExp> => {
 const isSubType = (te1: TExp, te2: TExp, p: Program): boolean =>
     isAnyTExp(te2) ? true :
     isUserDefinedTExp(te1) && isUserDefinedTExp(te2) ?
-        te1.typeName == te2.typeName ? true : //same user defined texp
+        te1.typeName == te2.typeName ? true : //same user defined TExp
             getParentsType(te1,p).includes(te2) ? true : false : //te2 is parent type of te1
-    isTVar(te1)&&isTVar(te2)&&eqTVar(te1,te2) ? true : //same Tvars
-    tvarDeref(te1) === tvarDeref(te2) ? true :
-        false
+    isTVar(te1)&&isTVar(te2)&&eqTVar(te1,te2) ? true : //same TVars
+    tvarDeref(te1) === tvarDeref(te2) ? true : false
 
 
 
@@ -102,12 +101,9 @@ const isSubType = (te1: TExp, te2: TExp, p: Program): boolean =>
 // p is passed to provide the context of all user defined types
 export const checkEqualType = (te1: TExp, te2: TExp, exp: Exp, p: Program): Result<TExp> =>
     isAnyTExp(te2) ? makeOk(te2) :
-    equals(te1,te2)  ? makeOk(te2) :
-    isSubType(te1,te2,p) ? makeOk(te2) :
-    isUserDefinedTExp(te1)&&isUserDefinedTExp(te2)&& te1.typeName === te2.typeName ? makeOk(te2) :
-    isTVar(te1)&&isTVar(te2)&&eqTVar(te1,te2) ? makeOk(te2) :
-    tvarDeref(te1) === tvarDeref(te2) ? makeOk(te2) :
-    makeFailure(`Incompatible types: ${te1} and ${te2} in ${exp}`)
+        equals (te1,te2) ? makeOk(te2) :
+            isSubType(te1,te2,p) ? makeOk(te2) :
+                makeFailure(`Incompatible types: ${te1} and ${te2} in ${exp}`)
 
 
 // L51
