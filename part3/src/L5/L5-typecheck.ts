@@ -6,7 +6,7 @@ import {
     isPrimOp, isProcExp, isProgram, isStrExp, isVarRef, unparse, parseL51,
     AppExp, BoolExp, DefineExp, Exp, IfExp, LetrecExp, LetExp, NumExp, SetExp, LitExp,
     Parsed, PrimOp, ProcExp, Program, StrExp, isSetExp, isLitExp,
-    isDefineTypeExp, isTypeCaseExp, DefineTypeExp, TypeCaseExp, CaseExp, isCompoundExp, makeBoolExp
+    isDefineTypeExp, isTypeCaseExp, DefineTypeExp, TypeCaseExp, CaseExp, isCompoundExp, makeBoolExp, VarDecl
 } from "./L5-ast";
 import { applyTEnv, makeEmptyTEnv, makeExtendTEnv, TEnv } from "./TEnv";
 import {
@@ -438,8 +438,13 @@ export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =
     makeOk(makeLitTexp())
 
 
-
-
+// we added, get a case and return it's texp
+export const get_type_of_case = (case_exp : CaseExp,tenv:TEnv,p:Program) : Result<TExp> => {
+    let vars : string[] = map((v:VarDecl)=>v.tag,case_exp.varDecls)
+    let t_exps : TExp[] = map((v:VarDecl)=>v.texp,case_exp.varDecls)
+    let new_env : TEnv = makeExtendTEnv(vars,t_exps,tenv)
+    return typeofExp(case_exp.body[case_exp.body.length-1],new_env,p)
+}
 
 // TODO: L51
 // Purpose: compute the type of a type-case
@@ -452,5 +457,7 @@ export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =
 //   ( type-case id val (record_1 (field_11 ... field_1r1) body_1)...  )
 //  TODO
 export const typeofTypeCase = (exp: TypeCaseExp, tenv: TEnv, p: Program): Result<TExp> => {
-    return makeFailure(`TODO: typecase ${JSON.stringify(exp, null, 2)}`);
+    const type_of_cases = mapResult((ce:CaseExp)=>get_type_of_case(ce,tenv,p),exp.cases)
+    const cases_cover_type = bind(type_of_cases,(types)=>checkCoverType(types,p))
+    return bind(cases_cover_type,(cover_type:TExp) => makeOk(cover_type))
 }
