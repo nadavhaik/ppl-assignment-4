@@ -18,7 +18,18 @@ import {
     isLitTexp, LitTexp, makeLitTexp, isCompoundTExp, extractTypeNames, makeTVar, eqAtomicTExp, isTVar, tvarDeref, eqTVar
 } from "./TExp";
 import { isEmpty, allT, first, rest, cons } from '../shared/list';
-import { Result, makeFailure, bind, makeOk, zipWithResult, mapv, mapResult, isFailure, either } from '../shared/result';
+import {
+    Result,
+    makeFailure,
+    bind,
+    makeOk,
+    zipWithResult,
+    mapv,
+    mapResult,
+    isFailure,
+    either,
+    isOk
+} from '../shared/result';
 import {isEmptySExp, isSymbolSExp, makeSymbolSExp} from "./L5-value";
 
 // L51
@@ -267,6 +278,17 @@ export const typeofPrim = (p: PrimOp): Result<TExp> =>
     (p.op === 'newline') ? parseTE('(Empty -> void)') :
     makeFailure(`Primitive not yet implemented: ${p.op}`);
 
+//we added:  if thenTE and altTE equals return ok<altTe>
+//otherwise, if thenTE and altTe has same cover type return ok<mostSpecificParent>
+//otherwise, return failure
+export const checkLegalAlt =(thenTE: TExp, altTE: TExp, exp:Exp, p:Program) : Result<TExp> => {
+    const eq = checkEqualType(thenTE,altTE,exp,p)
+    if(isOk(eq)){
+        return eq
+    }
+    return checkCoverType([thenTE,altTE],p)
+}
+
 // TODO L51
 // Change this definition to account for possibility of subtype expressions between thenTE and altTE
 // 
@@ -283,7 +305,7 @@ export const typeofIf = (ifExp: IfExp, tenv: TEnv, p: Program): Result<TExp> => 
     const constraint1 = bind(testTE, testTE => checkEqualType(testTE, makeBoolTExp(), ifExp, p));
     const constraint2 = bind(thenTE, (thenTE: TExp) =>
                             bind(altTE, (altTE: TExp) =>
-                                checkEqualType(thenTE, altTE, ifExp, p)));
+                                checkLegalAlt(thenTE,altTE,ifExp,p)));
     return bind(constraint1, (_c1) => constraint2);
 };
 
@@ -294,7 +316,7 @@ export const typeofIf = (ifExp: IfExp, tenv: TEnv, p: Program): Result<TExp> => 
 export const typeofProc = (proc: ProcExp, tenv: TEnv, p: Program): Result<TExp> => {
     const argsTEs = map((vd) => vd.texp, proc.args);
     const extTEnv = makeExtendTEnv(map((vd) => vd.var, proc.args), argsTEs, tenv);
-    const constraint1 = bind(typeofExps(proc.body, extTEnv, p), (body: TExp) => 
+    const constraint1 = bind(typeofExps(proc.body, extTEnv, p), (body: TExp) =>
                             checkEqualType(body, proc.returnTE, proc, p));
     return bind(constraint1, (returnTE: TExp) => makeOk(makeProcTExp(argsTEs, returnTE)));
 };
