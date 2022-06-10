@@ -177,8 +177,23 @@ export const checkCoverType = (types: TExp[], p: Program): Result<TExp> => {
 // Initialize TEnv with:
 // * Type of global variables (define expressions at top level of p)
 // * Type of implicitly defined procedures for user defined types (define-type expressions in p)
-export const initTEnv = (p: Program): TEnv =>
-    makeEmptyTEnv();
+export const initTEnv = (p: Program): TEnv => {
+    let tenv: TEnv = makeEmptyTEnv()
+
+    //add globals
+    const global_defs:DefineExp[] = getDefinitions(p)
+    const global_vars:string[] = map((d:DefineExp)=>d.var.var,global_defs)
+    tenv = makeExtendTEnv(global_vars,)
+
+    //add user-defined
+    const type_defs:UserDefinedTExp[] = getTypeDefinitions(p)
+    const records:Record[] = getRecords(p)
+
+
+
+
+};
+
 
 
 // Verify that user defined types and type-case expressions are semantically correct
