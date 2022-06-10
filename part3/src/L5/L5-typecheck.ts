@@ -183,7 +183,8 @@ export const initTEnv = (p: Program): TEnv => {
     //add globals
     const global_defs:DefineExp[] = getDefinitions(p)
     const global_vars:string[] = map((d:DefineExp)=>d.var.var,global_defs)
-    tenv = makeExtendTEnv(global_vars,[],tenv)
+    const global_texps:TExp[]=map((d:DefineExp)=>d.var.texp,global_defs)
+    tenv = makeExtendTEnv(global_vars,global_texps,tenv)
 
     //add user-defined
     const type_defs:UserDefinedTExp[] = getTypeDefinitions(p)
