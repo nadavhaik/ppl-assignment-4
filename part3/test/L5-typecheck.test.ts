@@ -293,10 +293,10 @@ describe('L5 Type Checker', () => {
 				const shapepred = applyTEnv(initTEnv(p), "Shape?");
 
                 expect(circlepred).toSatisfy(isOkT(isProcTExp));
-             //   expect(circleconst).toSatisfy(isOkT(isProcTExp));
-             //   expect(rectpred).toSatisfy(isOkT(isProcTExp));
-              //  expect(rectconst).toSatisfy(isOkT(isProcTExp));
-              //  expect(shapepred).toSatisfy(isOkT(isProcTExp));
+                expect(circleconst).toSatisfy(isOkT(isProcTExp));
+                expect(rectpred).toSatisfy(isOkT(isProcTExp));
+                expect(rectconst).toSatisfy(isOkT(isProcTExp));
+                expect(shapepred).toSatisfy(isOkT(isProcTExp));
 			});
 		});
     });

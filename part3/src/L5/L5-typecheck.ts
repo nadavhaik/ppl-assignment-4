@@ -216,10 +216,20 @@ const checkUserDefinedTypes = (p: Program): Result<true> =>
     makeOk(true);
 
 // TODO L51
-const checkTypeCase = (tc: TypeCaseExp, p: Program): Result<true> => 
+const checkTypeCase = (tc: TypeCaseExp, p: Program): Result<true> => {
     // Check that all type case expressions have exactly one clause for each constituent subtype 
     // (in any order)
-    makeOk(true);
+    let i:number
+    let j:number
+    for(i=0;i<tc.cases.length;i++){
+        for(j=0;j<tc.cases.length;j++){
+            if(i!=j&&tc.cases[i].typeName==tc.cases[j].typeName){
+                return makeFailure("more than one clause for same subtype")
+            }
+        }
+    }
+    return makeOk(true);
+}
 
 
 // Compute the type of L5 AST exps to TE
