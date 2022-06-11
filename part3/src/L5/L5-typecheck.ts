@@ -181,16 +181,28 @@ export const initTEnv = (p: Program): TEnv => {
     let tenv: TEnv = makeEmptyTEnv()
 
     //add globals
-    const global_defs:DefineExp[] = getDefinitions(p)
-    const global_vars:string[] = map((d:DefineExp)=>d.var.var,global_defs)
-    const global_texps:TExp[]=map((d:DefineExp)=>d.var.texp,global_defs)
+    let global_defs:DefineExp[] = getDefinitions(p)
+    let global_vars:string[] = map((d:DefineExp)=>d.var.var,global_defs)
+    let global_texps:TExp[]=map((d:DefineExp)=>d.var.texp,global_defs)
+    tenv = makeExtendTEnv(global_vars,global_texps,tenv)
 
     //add user-defined
-    const type_defs:UserDefinedTExp[] = getTypeDefinitions(p)
-    const records:Record[] = getRecords(p)
+    let type_defs:UserDefinedTExp[] = getTypeDefinitions(p)
+    let user_def_preds: string[] = map((td:UserDefinedTExp)=>td.typeName+"?",type_defs)
+    let user_def_pred_texps: TExp[] = map((td:UserDefinedTExp)=>makeProcTExp([makeAnyTExp()],makeBoolTExp()),type_defs)
+    tenv = makeExtendTEnv(user_def_preds,user_def_pred_texps,tenv)
 
-    const types = global_texps.concat(type_defs,records)
-    return makeExtendTEnv(global_vars,types,tenv)
+
+    //add records
+    const records:Record[] = getRecords(p)
+    let records_preds :string[] = map((r:Record)=>r.typeName+"?",records)
+    let records_preds_texps:TExp[] = map((r:Record)=>makeProcTExp([makeAnyTExp()],makeBoolTExp()),records)
+    tenv = makeExtendTEnv(records_preds,records_preds_texps,tenv)
+    let records_cons :string[] = map((r:Record)=>"make-"+r.typeName,getRecords(p))
+    let records_cons_texps:TExp[] =
+        map((r:Record)=>makeProcTExp(map((f:Field)=>f.te,r.fields),r),records)
+
+    return makeExtendTEnv(records_cons,records_preds_texps,tenv)
 };
 
 
