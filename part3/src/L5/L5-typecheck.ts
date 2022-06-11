@@ -219,13 +219,33 @@ const checkUserDefinedTypes = (p: Program): Result<true> =>
 const checkTypeCase = (tc: TypeCaseExp, p: Program): Result<true> => {
     // Check that all type case expressions have exactly one clause for each constituent subtype 
     // (in any order)
-    let i:number
+    const records = getRecords(p)
+    let i: number
     let j:number
+
+    //check there is only one case for every matching record
     for(i=0;i<tc.cases.length;i++){
         for(j=0;j<tc.cases.length;j++){
             if(i!=j&&tc.cases[i].typeName==tc.cases[j].typeName){
                 return makeFailure("more than one clause for same subtype")
             }
+        }
+    }
+
+    //check num of variable declarations match record's num of vars
+    for(i=0;i<tc.cases.length;i++){
+        let num_of_vars: number = tc.cases[i].varDecls.length
+        let existingRecord:boolean = false
+        for (j=0;j<(records.length&&!existingRecord);j++){
+            if(records[j].typeName===tc.cases[i].typeName){
+                existingRecord = true
+                if(records[j].fields.length!=num_of_vars){
+                    return makeFailure("num of vars in case doesn't match record")
+                }
+            }
+        }
+        if(!existingRecord){
+            return makeFailure("record doesn't exists")
         }
     }
     return makeOk(true);
