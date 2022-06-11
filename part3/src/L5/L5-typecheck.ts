@@ -210,23 +210,56 @@ export const initTEnv = (p: Program): TEnv => {
 // Verify that user defined types and type-case expressions are semantically correct
 // =================================================================================
 // TODO L51
-const checkUserDefinedTypes = (p: Program): Result<true> =>
+
+//we added
+const compareFields = (r1:Record,r2:Record) : boolean => {
+    const fields1 = r1.fields
+    const fields2 = r2.fields
+
+    if (fields1.length!=fields2.length) return false
+
+    for (let i=0;i<fields1.length;i++){
+        let found_same_field:boolean = false
+        for(let j=0;j<(!found_same_field&&fields2.length);j++){
+            if(fields1[i].fieldName===fields2[j].fieldName){
+                found_same_field=true
+                if (fields1[i].te!=fields2[j].te) return false
+            }
+        }
+        if(!found_same_field) return false
+    }
+
+    return true
+}
+const checkUserDefinedTypes = (p: Program): Result<true> => {
+    const records: Record[] = getRecords(p)
     // If the same type name is defined twice with different definitions
+    let i:number
+    let j:number
+    for (i=0;i<records.length;i++){
+        for(j=0;j<records.length;j++){
+            if(i!=j&&records[i].typeName===records[j].typeName){
+                if(!compareFields(records[i],records[j]))
+                    return makeFailure("2 records with the same name don't match")
+            }
+        }
+    }
     // If a recursive type has no base case
-    makeOk(true);
+    return makeOk(true);
+}
 
 // TODO L51
 const checkTypeCase = (tc: TypeCaseExp, p: Program): Result<true> => {
     // Check that all type case expressions have exactly one clause for each constituent subtype 
     // (in any order)
-    const records = getRecords(p)
+    const records:Record[] = getRecords(p)
     let i: number
     let j:number
 
     //check there is only one case for every matching record
     for(i=0;i<tc.cases.length;i++){
         for(j=0;j<tc.cases.length;j++){
-            if(i!=j&&tc.cases[i].typeName==tc.cases[j].typeName){
+            if(i!=j&&tc.cases[i].typeName===tc.cases[j].typeName){
                 return makeFailure("more than one clause for same subtype")
             }
         }
