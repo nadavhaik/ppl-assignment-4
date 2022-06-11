@@ -231,6 +231,16 @@ const compareFields = (r1:Record,r2:Record) : boolean => {
 
     return true
 }
+
+// we added
+const hasBaseCase = (udt:UserDefinedTExp) : boolean => {
+    const records: Record[] = udt.records
+    for(let i=0;i<records.length;i++){
+        if(records[i].fields.length===0) return true
+    }
+    return false
+}
+
 const checkUserDefinedTypes = (p: Program): Result<true> => {
     const records: Record[] = getRecords(p)
     // If the same type name is defined twice with different definitions
@@ -245,6 +255,26 @@ const checkUserDefinedTypes = (p: Program): Result<true> => {
         }
     }
     // If a recursive type has no base case
+    const user_defined_types:UserDefinedTExp[] = getTypeDefinitions(p)
+
+    const get_udt_name = (x:any): string => isUserDefinedTExp(x)? x.typeName : ''
+
+    for (i=0;i<user_defined_types.length;i++){
+        const ud_records: Record[] = user_defined_types[i].records
+
+        if(!hasBaseCase(user_defined_types[i])){
+            for (j = 0; j < ud_records.length; j++) {
+                const rec_fields: Field[] = ud_records[i].fields
+                for (let k = 0; k < rec_fields.length; k++) {
+                        if(isUserDefinedTExp(rec_fields[k])){
+                            if(get_udt_name(rec_fields[k])===get_udt_name(user_defined_types[i]))
+                                makeFailure("missing base case")
+                        }
+                }
+            }
+        }
+
+    }
     return makeOk(true);
 }
 
