@@ -534,7 +534,15 @@ export const typeofProgram = (exp: Program, tenv: TEnv, p: Program): Result<TExp
 // TODO L51
 // Write the typing rule for DefineType expressions
 export const typeofDefineType = (exp: DefineTypeExp, _tenv: TEnv, _p: Program): Result<TExp> =>
-    makeFailure(`Todo ${JSON.stringify(exp, null, 2)}`);
+{
+
+    let user_def_pred: string [] = [exp.typeName+"?",exp.typeName]
+    let user_def_pred_texp:TExp[] = [makeProcTExp([makeAnyTExp()],makeBoolTExp())
+        ,makeUserDefinedNameTExp(exp.typeName)]
+    const new_tenv = makeExtendTEnv(user_def_pred,user_def_pred_texp,_tenv)
+    return makeOk(makeUserDefinedNameTExp(exp.typeName))
+}
+
 
 // TODO L51
 export const typeofSet = (exp: SetExp, _tenv: TEnv, _p: Program): Result<TExp> =>
@@ -574,7 +582,6 @@ export const get_type_of_case = (case_exp : CaseExp,tenv:TEnv,p:Program) : Resul
 //         val CExp
 //         body_i for i in [1..n] sequences of CExp
 //   ( type-case id val (record_1 (field_11 ... field_1r1) body_1)...  )
-//  TODO
 export const typeofTypeCase = (exp: TypeCaseExp, tenv: TEnv, p: Program): Result<TExp> => {
     const type_of_cases = mapResult((ce:CaseExp)=>get_type_of_case(ce,tenv,p),exp.cases)
     const cases_cover_type = bind(type_of_cases,(types)=>checkCoverType(types,p))
