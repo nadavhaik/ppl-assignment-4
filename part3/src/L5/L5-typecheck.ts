@@ -222,6 +222,11 @@ export const initTEnv = (p: Program): TEnv => {
 
     //add user-defined
     let type_defs:UserDefinedTExp[] = getTypeDefinitions(p)
+
+    let ud_names:string[] = map((u:UserDefinedTExp)=>u.typeName,type_defs)
+    let ud_types:TExp[] = map((u:UserDefinedTExp)=>makeUserDefinedNameTExp(u.typeName),type_defs)
+    tenv = makeExtendTEnv(ud_names,ud_types,tenv)
+
     let user_def_preds: string[] = map((td:UserDefinedTExp)=>td.typeName+"?",type_defs)
     let user_def_pred_texps: TExp[] = map((td:UserDefinedTExp)=>makeProcTExp([makeAnyTExp()],makeBoolTExp()),type_defs)
     tenv = makeExtendTEnv(user_def_preds,user_def_pred_texps,tenv)
@@ -229,12 +234,17 @@ export const initTEnv = (p: Program): TEnv => {
 
     //add records
     const records:Record[] = getRecords(p)
+    let records_names:string [] = map((r:Record)=>r.typeName,records)
+    let records_uds_names:TExp [] = map((r:Record)=>makeUserDefinedNameTExp(r.typeName),records)
+    tenv = makeExtendTEnv(records_names,records_uds_names,tenv)
+
+
     let records_preds :string[] = map((r:Record)=>r.typeName+"?",records)
     let records_preds_texps:TExp[] = map((r:Record)=>makeProcTExp([makeAnyTExp()],makeBoolTExp()),records)
     tenv = makeExtendTEnv(records_preds,records_preds_texps,tenv)
     let records_cons :string[] = map((r:Record)=>"make-"+r.typeName,getRecords(p))
     let records_cons_texps:TExp[] =
-        map((r:Record)=>makeProcTExp(map((f:Field)=>f.te,r.fields),r),records)
+        map((r:Record)=>makeProcTExp(map((f:Field)=>f.te,r.fields),makeUserDefinedNameTExp(r.typeName)),records)
 
     return makeExtendTEnv(records_cons,records_preds_texps,tenv)
 };
@@ -569,12 +579,8 @@ export const typeofProgram = (exp: Program, tenv: TEnv, p: Program): Result<TExp
 // Write the typing rule for DefineType expressions
 export const typeofDefineType = (exp: DefineTypeExp, _tenv: TEnv, _p: Program): Result<TExp> =>
 {
-
-    let user_def_pred: string [] = [exp.typeName+"?",exp.typeName]
-    let user_def_pred_texp:TExp[] = [makeProcTExp([makeAnyTExp()],makeBoolTExp())
-        ,makeUserDefinedNameTExp(exp.typeName)]
-    const new_tenv = makeExtendTEnv(user_def_pred,user_def_pred_texp,_tenv)
-    return makeOk(makeUserDefinedNameTExp(exp.typeName))
+    const uds_correct:Result<true> =  checkUserDefinedTypes(_p)
+    return bind(uds_correct,(v:true)=>makeOk(makeVoidTExp()))
 }
 
 
@@ -608,7 +614,6 @@ export const get_type_of_case = (case_exp : CaseExp,tenv:TEnv,p:Program) : Resul
     const vars: string[] = case_exp.varDecls.map((v:VarDecl)=>v.var)
     const t_vars: TExp[] = record.value.fields.map((f:Field)=>f.te)
     const new_env:TEnv = makeExtendTEnv(vars,t_vars,tenv)
-   // return typeofExp(case_exp.body[case_exp.body.length-1],new_env,p)
     return typeofExps(case_exp.body,new_env,p)
 }
 
