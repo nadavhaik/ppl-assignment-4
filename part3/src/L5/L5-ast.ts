@@ -110,6 +110,7 @@ export interface BoolExp {tag: "BoolExp"; val: boolean; }
 export const makeBoolExp = (b: boolean): BoolExp => ({tag: "BoolExp", val: b});
 export const isBoolExp = (x: any): x is BoolExp => x.tag === "BoolExp";
 
+
 export interface StrExp {tag: "StrExp"; val: string; }
 export const makeStrExp = (s: string): StrExp => ({tag: "StrExp", val: s});
 export const isStrExp = (x: any): x is StrExp => x.tag === "StrExp";

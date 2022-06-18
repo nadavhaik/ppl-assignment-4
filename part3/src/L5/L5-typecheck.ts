@@ -10,12 +10,46 @@ import {
 } from "./L5-ast";
 import { applyTEnv, makeEmptyTEnv, makeExtendTEnv, TEnv } from "./TEnv";
 import {
-    isProcTExp, makeBoolTExp, makeNumTExp, makeProcTExp, makeStrTExp, makeVoidTExp,
-    parseTE, unparseTExp, Record,
-    BoolTExp, NumTExp, StrTExp, TExp, VoidTExp, UserDefinedTExp, isUserDefinedTExp, UDTExp,
-    isNumTExp, isBoolTExp, isStrTExp, isVoidTExp,
-    isRecord, ProcTExp, makeUserDefinedNameTExp, Field, makeAnyTExp, isAnyTExp, isUserDefinedNameTExp, isAtomicTExp,
-    isLitTexp, LitTexp, makeLitTexp, isCompoundTExp, extractTypeNames, makeTVar, eqAtomicTExp, isTVar, tvarDeref, eqTVar
+    isProcTExp,
+    makeBoolTExp,
+    makeNumTExp,
+    makeProcTExp,
+    makeStrTExp,
+    makeVoidTExp,
+    parseTE,
+    unparseTExp,
+    Record,
+    BoolTExp,
+    NumTExp,
+    StrTExp,
+    TExp,
+    VoidTExp,
+    UserDefinedTExp,
+    isUserDefinedTExp,
+    UDTExp,
+    isNumTExp,
+    isBoolTExp,
+    isStrTExp,
+    isVoidTExp,
+    isRecord,
+    ProcTExp,
+    makeUserDefinedNameTExp,
+    Field,
+    makeAnyTExp,
+    isAnyTExp,
+    isUserDefinedNameTExp,
+    isAtomicTExp,
+    isLitTexp,
+    LitTexp,
+    makeLitTexp,
+    isCompoundTExp,
+    extractTypeNames,
+    makeTVar,
+    eqAtomicTExp,
+    isTVar,
+    tvarDeref,
+    eqTVar,
+    TVar
 } from "./TExp";
 import { isEmpty, allT, first, rest, cons } from '../shared/list';
 import {
@@ -573,6 +607,17 @@ export const get_type_of_case = (case_exp : CaseExp,tenv:TEnv,p:Program) : Resul
     return typeofExp(case_exp.body[case_exp.body.length-1],new_env,p)
 }
 
+// we added
+export const add_record_to_env = (case_exp:CaseExp,tenv:TEnv,p:Program):Result<TEnv> => {
+    const record = getRecordByName(case_exp.typeName,p);
+    if(isFailure(record)){
+        return record
+    }
+    const vars: string[] = case_exp.varDecls.map((v:VarDecl)=>v.var)
+    const t_vars: TExp[] = record.value.fields.map((f:Field)=>f.te)
+    return makeOk(makeExtendTEnv(vars,t_vars,tenv))
+
+}
 // TODO: L51
 // Purpose: compute the type of a type-case
 // Typing rule:
@@ -583,6 +628,13 @@ export const get_type_of_case = (case_exp : CaseExp,tenv:TEnv,p:Program) : Resul
 //         body_i for i in [1..n] sequences of CExp
 //   ( type-case id val (record_1 (field_11 ... field_1r1) body_1)...  )
 export const typeofTypeCase = (exp: TypeCaseExp, tenv: TEnv, p: Program): Result<TExp> => {
+   for (const ce of exp.cases){
+        let res:Result<TEnv> = add_record_to_env(ce,tenv,p);
+        if(isFailure(res)) {
+            return makeFailure("cannot add record");
+        }
+        tenv = res.value;
+    }
     const type_of_cases = mapResult((ce:CaseExp)=>get_type_of_case(ce,tenv,p),exp.cases)
     const cases_cover_type = bind(type_of_cases,(types)=>checkCoverType(types,p))
     return bind(cases_cover_type,(cover_type:TExp) => makeOk(cover_type))
