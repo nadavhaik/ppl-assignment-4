@@ -1,6 +1,6 @@
 // L5-typecheck
 // ========================================================
-import { equals, filter, flatten, includes, map, intersection, zipWith, reduce } from 'ramda';
+import {equals, filter, flatten, includes, map, intersection, zipWith, reduce, concat} from 'ramda';
 import {
     isAppExp, isBoolExp, isDefineExp, isIfExp, isLetrecExp, isLetExp, isNumExp,
     isPrimOp, isProcExp, isProgram, isStrExp, isVarRef, unparse, parseL51,
@@ -212,45 +212,51 @@ export const checkCoverType = (types: TExp[], p: Program): Result<TExp> => {
 // * Type of global variables (define expressions at top level of p)
 // * Type of implicitly defined procedures for user defined types (define-type expressions in p)
 export const initTEnv = (p: Program): TEnv => {
-    let tenv: TEnv = makeEmptyTEnv()
+    let vars: string[] = []
+    let texps: TExp[] = []
+
 
     //add globals
     let global_defs:DefineExp[] = getDefinitions(p)
     let global_vars:string[] = map((d:DefineExp)=>d.var.var,global_defs)
     let global_texps:TExp[]=map((d:DefineExp)=>d.var.texp,global_defs)
-    tenv = makeExtendTEnv(global_vars,global_texps,tenv)
+    vars = concat(vars,global_vars)
+    texps = concat(texps,global_texps)
 
     //add user-defined
     let type_defs:UserDefinedTExp[] = getTypeDefinitions(p)
 
     let ud_names:string[] = map((u:UserDefinedTExp)=>u.typeName,type_defs)
     let ud_types:TExp[] = map((u:UserDefinedTExp)=>makeUserDefinedNameTExp(u.typeName),type_defs)
-    tenv = makeExtendTEnv(ud_names,ud_types,tenv)
+    vars = concat(vars,ud_names)
+    texps = concat(texps,ud_types)
 
-   // let ud_makes_var:string[]=map((u:UserDefinedTExp)=>"make-"+u.typeName,type_defs)
-   // let ud_make_texps:TExp[]= map((u:UserDefinedTExp)=>makeProcTExp(map((f:Field)=>f.te,u.fields),makeUserDefinedNameTExp(u.typeName)),type_defs)
-  //  tenv = makeExtendTEnv(ud_makes_var,ud_make_texps,tenv)
 
     let user_def_preds: string[] = map((td:UserDefinedTExp)=>td.typeName+"?",type_defs)
     let user_def_pred_texps: TExp[] = map((td:UserDefinedTExp)=>makeProcTExp([makeAnyTExp()],makeBoolTExp()),type_defs)
-    tenv = makeExtendTEnv(user_def_preds,user_def_pred_texps,tenv)
+    vars = concat(vars,user_def_preds)
+    texps = concat(texps,user_def_pred_texps)
 
 
     //add records
     const records:Record[] = getRecords(p)
     let records_names:string [] = map((r:Record)=>r.typeName,records)
     let records_uds_names:TExp [] = map((r:Record)=>makeUserDefinedNameTExp(r.typeName),records)
-    tenv = makeExtendTEnv(records_names,records_uds_names,tenv)
+    vars = concat(vars,records_names)
+    texps = concat(texps,records_uds_names)
 
 
     let records_preds :string[] = map((r:Record)=>r.typeName+"?",records)
     let records_preds_texps:TExp[] = map((r:Record)=>makeProcTExp([makeAnyTExp()],makeBoolTExp()),records)
-    tenv = makeExtendTEnv(records_preds,records_preds_texps,tenv)
+    vars = concat(vars,records_preds)
+    texps = concat(texps,records_preds_texps)
     let records_cons :string[] = map((r:Record)=>"make-"+r.typeName,getRecords(p))
     let records_cons_texps:TExp[] =
         map((r:Record)=>makeProcTExp(map((f:Field)=>f.te,r.fields),makeUserDefinedNameTExp(r.typeName)),records)
+    vars = concat(vars,records_cons)
+    texps = concat(texps,records_cons_texps)
 
-    return makeExtendTEnv(records_cons,records_preds_texps,tenv)
+    return makeExtendTEnv(vars,texps,makeEmptyTEnv())
 };
 
 
