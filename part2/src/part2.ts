@@ -145,7 +145,7 @@ export async function makeReactiveTableService<T>(sync: (table?: Table<T>) => Pr
             for(const [oldKey, oldVal] of Object.entries(oldTable))
                 newTable[oldKey] = oldVal
             newTable[key] = val
-            return  handleMutation(newTable)
+            return handleMutation(newTable)
         },
         delete(key: string): Promise<void> {
             const oldTable = _table;
