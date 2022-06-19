@@ -117,9 +117,29 @@ export async function makeReactiveTableService<T>(sync: (table?: Table<T>) => Pr
     // optional initialization code
 
     let _table: Table<T> = await sync()
+    let locked: boolean = false
+    let _observer: (table: Table<T>) => void = () => {}
+    const lock = (): boolean => {
+        if(locked)
+            return false
+        locked = true
+        return true
+    }
+
+    const unlock = (): boolean => {
+        if(!locked)
+            return false
+        locked = false
+        return true
+    }
+
 
     const handleMutation = async (newTable: Table<T>) => {
-        // TODO implement!
+        if(!lock())
+            return Promise.reject("Table is locked!")
+        _table = newTable;
+        unlock()
+        return Promise.resolve()
     }
     return {
         get(key: string): T {
@@ -130,14 +150,51 @@ export async function makeReactiveTableService<T>(sync: (table?: Table<T>) => Pr
             }
         },
         set(key: string, val: T): Promise<void> {
-            return handleMutation(null as any /* TODO */)
+            const oldTable = _table;
+            let newTable: Record<string, T> = {}
+            for(const [oldKey, oldVal] of Object.entries(oldTable))
+                newTable[oldKey] = oldVal
+            newTable[key] = val
+            const mutPromise: Promise<void> = handleMutation(newTable)
+            if(!optimistic)
+                return mutPromise.then(() => {
+                    return _observer(newTable)
+                }).catch(()=>{
+                    _observer(oldTable)
+                    return Promise.reject()
+                })
+            else {
+                _observer(newTable)
+                return mutPromise
+            }
         },
         delete(key: string): Promise<void> {
-            return handleMutation(null as any /* TODO */)
+            const oldTable = _table;
+            if(!(key in oldTable)) {
+                _observer(oldTable)
+                return Promise.reject()
+            }
+            let newTable: Record<string, T> = {}
+            for(const [tableKey, tableVal] of Object.entries(oldTable)) {
+                    if(tableKey != key)
+                        newTable[tableKey] = tableVal
+            }
+            const mutPromise: Promise<void> = handleMutation(newTable)
+            if(!optimistic)
+                return mutPromise.then(() => {
+                    return _observer(newTable)
+                }).catch(()=>{
+                    _observer(oldTable)
+                    return Promise.reject()
+                })
+            else {
+                _observer(newTable)
+                return mutPromise
+            }
         },
 
         subscribe(observer: (table: Table<T>) => void): void {
-            // TODO implement!
+            _observer = observer
         }
     }
 }
