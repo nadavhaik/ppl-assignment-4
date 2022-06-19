@@ -117,29 +117,19 @@ export async function makeReactiveTableService<T>(sync: (table?: Table<T>) => Pr
     // optional initialization code
 
     let _table: Table<T> = await sync()
-    let locked: boolean = false
-    let _observer: (table: Table<T>) => void = () => {}
-    const lock = (): boolean => {
-        if(locked)
-            return false
-        locked = true
-        return true
-    }
-
-    const unlock = (): boolean => {
-        if(!locked)
-            return false
-        locked = false
-        return true
-    }
-
-
+    let _observers: ((table: Table<T>) => void)[] = []
     const handleMutation = async (newTable: Table<T>) => {
-        if(!lock())
-            return Promise.reject("Table is locked!")
-        _table = newTable;
-        unlock()
-        return Promise.resolve()
+        if(optimistic) {
+            _observers.map((observer) => observer(newTable))
+            return sync(newTable).then(() => {_table = newTable}).catch((err) => {
+                _observers.map((observer) => observer(_table))
+                throw err
+            })
+        } // else - not optimistic:
+        return sync(newTable).then(() => {
+            _table = newTable
+            _observers.map((observer) => observer(newTable))
+        })
     }
     return {
         get(key: string): T {
@@ -155,46 +145,22 @@ export async function makeReactiveTableService<T>(sync: (table?: Table<T>) => Pr
             for(const [oldKey, oldVal] of Object.entries(oldTable))
                 newTable[oldKey] = oldVal
             newTable[key] = val
-            const mutPromise: Promise<void> = handleMutation(newTable)
-            if(!optimistic)
-                return sync(newTable).then(() => {
-                    return _observer(newTable)
-                }).catch(()=>{
-                    _observer(oldTable)
-                    return Promise.reject()
-                })
-            else {
-                _observer(newTable)
-                return mutPromise
-            }
+            return  handleMutation(newTable)
         },
         delete(key: string): Promise<void> {
             const oldTable = _table;
             if(!(key in oldTable)) {
-                _observer(oldTable)
-                return Promise.reject()
+                return Promise.reject(MISSING_KEY)
             }
             let newTable: Record<string, T> = {}
             for(const [tableKey, tableVal] of Object.entries(oldTable)) {
                     if(tableKey != key)
                         newTable[tableKey] = tableVal
             }
-            const mutPromise: Promise<void> = handleMutation(newTable)
-            if(!optimistic)
-                return sync(newTable).then(() => {
-                    return _observer(newTable)
-                }).catch(()=>{
-                    _observer(oldTable)
-                    return Promise.reject()
-                })
-            else {
-                _observer(newTable)
-                return mutPromise
-            }
+            return handleMutation(newTable)
         },
-
         subscribe(observer: (table: Table<T>) => void): void {
-            _observer = observer
+            _observers.push(observer)
         }
     }
 }
