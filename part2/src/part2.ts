@@ -12,37 +12,37 @@ export type TableService<T> = {
 // Q 2.1 (a)
 export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>>): TableService<T> {
     // optional initialization code
-    let d: { [key: string]: T} = {}
-    let initialized: boolean = false
+    let _newTable: Record<string, T> = {}
+    let _initialized: boolean = false
     sync().then((table: Table<T>) => {
         for (const key in table)
-            d[key] = table[key]
-        initialized = true
+            _newTable[key] = table[key]
+        _initialized = true
     })
-    const waitForInitialization = () => {while(!initialized);}
+    const waitForInitialization = () => {while(!_initialized);}
 
     return {
         get(key: string): Promise<T> {
-            return sync(d)
+            return sync(_newTable)
                 .then(() => {
                     waitForInitialization()
-                    if(d.hasOwnProperty(key))
-                        return Promise.resolve(d[key])
+                    if(_newTable.hasOwnProperty(key))
+                        return Promise.resolve(_newTable[key])
                     return Promise.reject(MISSING_KEY)
                 }).catch(() => Promise.reject(MISSING_KEY))
         },
         set(key: string, val: T): Promise<void> {
-            return sync(d).then(() => {
+            return sync(_newTable).then(() => {
                 waitForInitialization()
-                d[key] = val
+                _newTable[key] = val
                 return Promise.resolve()
             }).catch(() => Promise.reject(MISSING_KEY))
         },
         delete(key: string): Promise<void> {
-           return sync(d).then(() => {
+           return sync(_newTable).then(() => {
                waitForInitialization()
-               if(d.hasOwnProperty(key)) {
-                   delete d[key]
+               if(_newTable.hasOwnProperty(key)) {
+                   delete _newTable[key]
                    return Promise.resolve()
                }
                return Promise.reject(MISSING_KEY)
