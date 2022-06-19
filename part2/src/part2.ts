@@ -140,20 +140,18 @@ export async function makeReactiveTableService<T>(sync: (table?: Table<T>) => Pr
             }
         },
         set(key: string, val: T): Promise<void> {
-            const oldTable = _table;
             let newTable: Record<string, T> = {}
-            for(const [oldKey, oldVal] of Object.entries(oldTable))
+            for(const [oldKey, oldVal] of Object.entries(_table))
                 newTable[oldKey] = oldVal
             newTable[key] = val
             return handleMutation(newTable)
         },
         delete(key: string): Promise<void> {
-            const oldTable = _table;
-            if(!(key in oldTable)) {
+            if(!(key in _table)) {
                 return Promise.reject(MISSING_KEY)
             }
             let newTable: Record<string, T> = {}
-            for(const [tableKey, tableVal] of Object.entries(oldTable)) {
+            for(const [tableKey, tableVal] of Object.entries(_table)) {
                     if(tableKey != key)
                         newTable[tableKey] = tableVal
             }
