@@ -23,7 +23,7 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
 
     return {
         get(key: string): Promise<T> {
-            return sync()
+            return sync(d)
                 .then(() => {
                     waitForInitialization()
                     if(d.hasOwnProperty(key))
@@ -32,14 +32,14 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
                 }).catch(() => Promise.reject(MISSING_KEY))
         },
         set(key: string, val: T): Promise<void> {
-            return sync().then(() => {
+            return sync(d).then(() => {
                 waitForInitialization()
                 d[key] = val
                 return Promise.resolve()
             }).catch(() => Promise.reject(MISSING_KEY))
         },
         delete(key: string): Promise<void> {
-           return sync().then(() => {
+           return sync(d).then(() => {
                waitForInitialization()
                if(d.hasOwnProperty(key)) {
                    delete d[key]
@@ -157,7 +157,7 @@ export async function makeReactiveTableService<T>(sync: (table?: Table<T>) => Pr
             newTable[key] = val
             const mutPromise: Promise<void> = handleMutation(newTable)
             if(!optimistic)
-                return mutPromise.then(() => {
+                return sync(newTable).then(() => {
                     return _observer(newTable)
                 }).catch(()=>{
                     _observer(oldTable)
@@ -181,7 +181,7 @@ export async function makeReactiveTableService<T>(sync: (table?: Table<T>) => Pr
             }
             const mutPromise: Promise<void> = handleMutation(newTable)
             if(!optimistic)
-                return mutPromise.then(() => {
+                return sync(newTable).then(() => {
                     return _observer(newTable)
                 }).catch(()=>{
                     _observer(oldTable)
