@@ -29,14 +29,14 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
                     if(_newTable.hasOwnProperty(key))
                         return Promise.resolve(_newTable[key])
                     return Promise.reject(MISSING_KEY)
-                }).catch(() => Promise.reject(MISSING_KEY))
+                })
         },
         set(key: string, val: T): Promise<void> {
             return sync(_newTable).then(() => {
                 waitForInitialization()
                 _newTable[key] = val
                 return Promise.resolve()
-            }).catch(() => Promise.reject(MISSING_KEY))
+            })
         },
         delete(key: string): Promise<void> {
            return sync(_newTable).then(() => {
@@ -46,7 +46,7 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
                    return Promise.resolve()
                }
                return Promise.reject(MISSING_KEY)
-           }).catch(() => Promise.reject(MISSING_KEY))
+           })
         }
     }
 }
