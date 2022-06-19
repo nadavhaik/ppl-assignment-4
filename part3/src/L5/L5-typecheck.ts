@@ -598,7 +598,7 @@ export const typeofSet = (exp: SetExp, _tenv: TEnv, _p: Program): Result<TExp> =
 
 };
 
-// TODO L51
+
 
 export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =>
     makeOk(makeLitTexp())
@@ -617,7 +617,7 @@ export const get_type_of_case = (case_exp : CaseExp,tenv:TEnv,p:Program) : Resul
 }
 
 
-// TODO: L51
+
 // Purpose: compute the type of a type-case
 // Typing rule:
 // For all user-defined-type id
