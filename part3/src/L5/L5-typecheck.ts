@@ -125,7 +125,7 @@ export const getTypeByName = (typeName: string, p: Program): Result<UDTExp> => {
     }
 }
 
-// TODO L51
+
 // Is te1 a subtype of te2?
 const isSubType = (te1: TExp, te2: TExp, p: Program): boolean =>
     isAnyTExp(te2) ? true :
@@ -138,7 +138,7 @@ const isSubType = (te1: TExp, te2: TExp, p: Program): boolean =>
 
 
 
-// TODO L51: Change this definition to account for user defined types
+
 // Purpose: Check that the computed type te1 can be accepted as an instance of te2
 // test that te1 is either the same as te2 or more specific
 // Deal with case of user defined type names 
@@ -198,14 +198,14 @@ export const checkCoverType = (types: TExp[], p: Program): Result<TExp> => {
 
 // Compute the initial TEnv given user defined types
 // =================================================
-// TODO L51
+
 // Construct type environment for the user-defined type induced functions
 // Type constructor for all records
 // Type predicate for all records
 // Type predicate for all user-defined-types
 // All globally defined variables (with define)
 
-// TODO: Define here auxiliary functions for TEnv computation
+
 
 // TOODO L51
 // Initialize TEnv with:
@@ -226,6 +226,10 @@ export const initTEnv = (p: Program): TEnv => {
     let ud_names:string[] = map((u:UserDefinedTExp)=>u.typeName,type_defs)
     let ud_types:TExp[] = map((u:UserDefinedTExp)=>makeUserDefinedNameTExp(u.typeName),type_defs)
     tenv = makeExtendTEnv(ud_names,ud_types,tenv)
+
+   // let ud_makes_var:string[]=map((u:UserDefinedTExp)=>"make-"+u.typeName,type_defs)
+   // let ud_make_texps:TExp[]= map((u:UserDefinedTExp)=>makeProcTExp(map((f:Field)=>f.te,u.fields),makeUserDefinedNameTExp(u.typeName)),type_defs)
+  //  tenv = makeExtendTEnv(ud_makes_var,ud_make_texps,tenv)
 
     let user_def_preds: string[] = map((td:UserDefinedTExp)=>td.typeName+"?",type_defs)
     let user_def_pred_texps: TExp[] = map((td:UserDefinedTExp)=>makeProcTExp([makeAnyTExp()],makeBoolTExp()),type_defs)
@@ -253,7 +257,7 @@ export const initTEnv = (p: Program): TEnv => {
 
 // Verify that user defined types and type-case expressions are semantically correct
 // =================================================================================
-// TODO L51
+
 
 //we added
 const compareFields = (r1:Record,r2:Record) : boolean => {
@@ -322,7 +326,7 @@ const checkUserDefinedTypes = (p: Program): Result<true> => {
     return makeOk(true);
 }
 
-// TODO L51
+
 const checkTypeCase = (tc: TypeCaseExp, p: Program): Result<true> => {
     // Check that all type case expressions have exactly one clause for each constituent subtype 
     // (in any order)
@@ -416,7 +420,7 @@ const numOpTExp = parseTE('(number * number -> number)');
 const numCompTExp = parseTE('(number * number -> boolean)');
 const boolOpTExp = parseTE('(boolean * boolean -> boolean)');
 
-// L51 Todo: cons, car, cdr, list
+
 export const typeofPrim = (p: PrimOp): Result<TExp> =>
     (p.op === '+') ? numOpTExp :
     (p.op === '-') ? numOpTExp :
@@ -452,7 +456,7 @@ export const checkLegalAlt =(thenTE: TExp, altTE: TExp, exp:Exp, p:Program) : Re
     return checkCoverType([thenTE,altTE],p)
 }
 
-// TODO L51
+
 // Change this definition to account for possibility of subtype expressions between thenTE and altTE
 // 
 // Purpose: compute the type of an if-exp
@@ -554,7 +558,6 @@ export const typeofLetrec = (exp: LetrecExp, tenv: TEnv, p: Program): Result<TEx
     return bind(constraints, _ => typeofExps(exp.body, tenvBody, p));
 };
 
-// TODO - write the true definition
 // Purpose: compute the type of a define
 // Typing rule:
 //   (define (var : texp) val)
@@ -575,7 +578,7 @@ export const typeofDefine = (exp: DefineExp, tenv: TEnv, p: Program): Result<Voi
 export const typeofProgram = (exp: Program, tenv: TEnv, p: Program): Result<TExp> =>
     typeofExps(exp.exps, tenv, p);
 
-// TODO L51
+
 // Write the typing rule for DefineType expressions
 export const typeofDefineType = (exp: DefineTypeExp, _tenv: TEnv, _p: Program): Result<TExp> =>
 {
@@ -584,7 +587,7 @@ export const typeofDefineType = (exp: DefineTypeExp, _tenv: TEnv, _p: Program): 
 }
 
 
-// TODO L51
+
 export const typeofSet = (exp: SetExp, _tenv: TEnv, _p: Program): Result<TExp> =>
 {
     const var1 = exp.var.var
@@ -596,11 +599,7 @@ export const typeofSet = (exp: SetExp, _tenv: TEnv, _p: Program): Result<TExp> =
 };
 
 // TODO L51
-// Typing rule (we added): @TODO add to docx
-// Typing rule:
-//   ('exp: SExpValue)
-//     if type<exp>(tenv)=t
-//      then type<'exp>=t
+
 export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =>
     makeOk(makeLitTexp())
 
